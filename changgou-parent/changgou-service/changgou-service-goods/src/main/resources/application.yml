@@ -1,0 +1,24 @@
+server:
+  port: 18081
+spring:
+  application:
+    name: goods
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.211.132:3306/changgou_goods?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: 123456
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:7001/eureka
+  instance:
+    prefer-ip-address: true  #作用是注册服务的时候使用ip地址，ip地址从host里面找。
+feign:
+  hystrix:
+    enabled: true
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true  #驼峰实体类规避下划线
+  mapper-locations: classpath:mapper/*Mapper.xml  #映射文件路径
+  type-aliases-package: com.icicle.goods.feign  #批量别名

@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: gateway-web
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]': # 匹配所有请求
+            allowedOrigins: "*" #跨域处理 允许所有的域
+            allowedMethods: # 支持的方法
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      routes:
+        #商品微服务
+        - id: changgou_goods_route   #唯一标识
+#          uri: http://localhost:18081
+          uri: lb://goods   #所有请求都交给goods处理 goods可以配置成集群 负载均衡
+          predicates:
+#          - Host=cloud.icicle.com**
+#          - Path=/brand/**
+            - Path=/api/brand**
+          filters:
+#            - PrefixPath=/brand  可以加一个统一前缀
+            - StripPrefix=1   #统一去掉第一个前缀
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"   #用于通过SPEL表达式来指定使用哪一个KeyResolver.
+                redis-rate-limiter.replenishRate: 1  #表示一秒内，允许一个请求通过，令牌桶的填充速率也是一秒钟添加一个令牌 1s处理一个请求
+                redis-rate-limiter.burstCapacity: 1  # 最大并发1 最大突发状况 也只允许 一秒内有一次请求，可以根据业务来调整
+        #用户微服务
+        - id: changgou_user_route
+          uri: lb://user
+          predicates:
+            - Path=/api/user/**,/api/address/**,/api/areas/**,/api/cities/**,/api/provinces/**
+          filters:
+            - StripPrefix=1
+        #订单微服务
+        - id: changgou_order_route
+          uri: lb://order
+          predicates:
+            - Path=/api/cart/**,/api/categoryReport/**,/api/orderConfig/**,/api/order/**,/api/orderItem/**,/api/orderLog/**,/api/preferential/**,/api/returnCause/**,/api/returnOrder/**,/api/returnOrderItem/**
+          filters:
+            - StripPrefix=1
+  redis:
+    host: 192.168.211.132
+    port: 6379
+server:
+  port: 8001
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:7001/eureka
+  instance:
+    prefer-ip-address: true
+management:
+  endpoint:
+    gateway:
+      enabled: true
+    web:
+      exposure:
+        include: true
